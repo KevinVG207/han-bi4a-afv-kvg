@@ -1,0 +1,34 @@
+/*
+* {
+		padding: 0;
+		margin: 0;
+		box-sizing: border-box;
+}
+*/
+
+html, body {
+    height: 100%;
+}
+
+h1 {
+    font-family: "Comic Sans MS";
+}
+
+li {
+    font-family: "Impact";
+}
+
+.container {
+    margin: 20px;
+}
+
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: sandybrown;
+    color: black;
+    text-align: center;
+    font-family: "Trebuchet MS";
+}
