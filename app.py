@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request
+from flask_mysqldb import MySQL
+import mysql.connector
 
 app = Flask(__name__)
 
@@ -20,6 +22,29 @@ def dna2prot():
         # IS valid
             protein_seq = translate(nucleotide_seq)
     return render_template("dna2prot.html", prot=protein_seq)
+
+@app.route('/ensembl', methods=["POST", "GET"])
+def ensembl():
+    if request.method == "POST" and request.form.get("search", "") != "":
+        # POST request
+        rows = []
+        search = request.form.get("search")
+        try:
+            connection = mysql.connector.connect(host='ensembldb.ensembl.org',
+                                                 port=3306,
+                                                 user='anonymous',
+                                                 db='homo_sapiens_core_95_38')
+            cursor = connection.cursor()
+            query = """select * from gene where description like '%""" + search + """%' limit 100;"""
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            cursor.close()
+            connection.close()
+        except mysql.connector.Error as error:
+            rows = [error]
+        return render_template("ensembl.html", rows=rows)
+    else:
+        return render_template("ensembl.html", rows=[])
 
 
 def is_dna(seq):
