@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Biopython</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<form method="post">
+    DNA/RNA/Protein sequence:
+    <input type="text" name="entry">
+    <input type="submit" value="Analyze">
+</form>
+<hr>
+<h3>Output:</h3>
+{% for row in result %}
+    <p>{{ row }}</p>
+{% endfor %}
+{% if url|length %}
+    <a href={{ url }} target="_blank">BLASTp page for this sequence</a>
+    <p>BLASTing through biopython takes a godawful amount of time, so doing it through the interactive webpage will yield much faster results.</p>
+{% endif %}
+<div class="footer">
+    <p>&copy;KevinVG207 2020</p>
+</div>
+</body>
+</html>

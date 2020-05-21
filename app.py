@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
-from flask_mysqldb import MySQL
 import mysql.connector
+from Bio.Seq import Seq
+from Bio.Alphabet import IUPAC
 
 app = Flask(__name__)
 
@@ -19,9 +20,10 @@ def dna2prot():
         if not is_dna(nucleotide_seq):
             protein_seq = "ERROR: Not a valid DNA/RNA sequence"
         else:
-        # IS valid
+            # IS valid
             protein_seq = translate(nucleotide_seq)
     return render_template("dna2prot.html", prot=protein_seq)
+
 
 @app.route('/ensembl', methods=["POST", "GET"])
 def ensembl():
@@ -47,9 +49,43 @@ def ensembl():
         return render_template("ensembl.html", rows=[])
 
 
+@app.route('/biopython', methods=["POST", "GET"])
+def biopython():
+    if request.method == "POST" and request.form.get("entry", "") != "":
+        # POST request
+        url = ""
+        user_input = request.form.get("entry").upper()
+        result = ["Input sequence: " + str(user_input)]
+        if is_dna(user_input):
+            # DNA
+            seq_obj = Seq(user_input, IUPAC.ambiguous_dna)
+            result += ["DNA Sequence.",
+                      "RNA: " + str(seq_obj.transcribe()),
+                      "Protein: " + str(seq_obj.translate())]
+        elif is_rna(user_input):
+            # RNA
+            seq_obj = Seq(user_input, IUPAC.ambiguous_rna)
+            result += ["RNA Sequence.",
+                      "Protein: " + str(seq_obj.translate())]
+        elif is_protein(user_input):
+            # Protein
+            result += ["Protein sequence.",
+                      "BLAST to find out the most likely source gene:"]
+            url = "https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastp&PAGE_TYPE=BlastSearch&QUERY=" + str(user_input)
+            # What happens here is that I'm linking to the NCBI BlastP webpage and pre-filling the query box
+            # with the given sequence. The user only has to click the "BLAST" button.
+            # Doing blasts through the website is much, much faster and means that the webpage
+            # won't hang for 15 minutes while the blast happens.
+        else:
+            # Nothing
+            result += ["Not DNA/RNA/Protein"]
+        return render_template("biopython.html", result=result, url=url)
+    else:
+        return render_template("biopython.html", result=[""])
+
+
 def is_dna(seq):
-    """Deze functie bepaalt of de sequentie (een element uit seqs)
-    DNA is.
+    """Deze functie bepaalt of de sequentie DNA is.
     Indien ja, return True
     Zo niet, return False
     """
@@ -62,6 +98,62 @@ def is_dna(seq):
     total = a_count + g_count + c_count + t_count + n_count  # Bereken totaal lengte van potentieel mRNA
 
     if total == len(seq):  # Wanneer het totaal overeen komt, is het DNA/mRNA
+        return True
+    else:
+        return False
+
+
+def is_rna(seq):
+    """Deze functie bepaalt of de sequentie RNA is.
+    Indien ja, return True
+    Zo niet, return False
+    """
+    a_count = seq.count("A")
+    g_count = seq.count("G")
+    c_count = seq.count("C")
+    u_count = seq.count("U")
+    n_count = seq.count("N")
+
+    total = a_count + g_count + c_count + u_count + n_count
+
+    if total == len(seq):
+        return True
+    else:
+        return False
+
+
+def is_protein(seq):
+    """Deze functie bepaalt of de sequentie eiwit is.
+    Indien ja, return True
+    Zo niet, return False
+    """
+    amino_list = ["A",
+                  "R",
+                  "N",
+                  "D",
+                  "B",
+                  "C",
+                  "E",
+                  "Q",
+                  "Z",
+                  "G",
+                  "H",
+                  "I",
+                  "L",
+                  "K",
+                  "M",
+                  "F",
+                  "P",
+                  "S",
+                  "T",
+                  "W",
+                  "Y",
+                  "V",
+                  "X"]
+    total = 0
+    for amino in amino_list:
+        total += seq.count(amino)
+    if total == len(seq):
         return True
     else:
         return False
