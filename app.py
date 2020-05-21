@@ -54,7 +54,7 @@ def biopython():
     if request.method == "POST" and request.form.get("entry", "") != "":
         # POST request
         url = ""
-        user_input = request.form.get("entry").upper()
+        user_input = request.form.get("entry").upper().replace("\n", "").replace(" ", "")
         result = ["Input sequence: " + str(user_input)]
         if is_dna(user_input):
             # DNA
